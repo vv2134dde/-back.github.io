@@ -1,0 +1,102 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+  id                  Int         @id @default(autoincrement())
+  name                String      @db.VarChar(255)
+  signUpDate          DateTime    @default(now())
+  email               String
+  salt                String
+  password            String
+  bio                 String?
+  image               String?
+  ratedBooks          Rating[]
+  cart                Cart?
+  order               Order[]
+}
+
+model Cart {
+  id               Int           @id @default(autoincrement())
+  user             User          @relation(fields: [userId], references: [id])
+  userId           Int           @unique
+  cartItems        CartItem[]
+}
+
+model CartItem {
+  id               Int           @id @default(autoincrement())
+  cart             Cart          @relation(fields: [cartId], references: [id])
+  cartId           Int           @unique
+  productId        Int
+  productType      String        @db.VarChar(255)
+
+  @@unique([cartId, productId, productType])
+}
+
+model Order {
+  id               Int           @id @default(autoincrement())
+  user             User          @relation(fields: [userId], references: [id])
+  userId           Int           
+  orderItems       OrderItem[]
+  orderDate        DateTime      @default(now())
+}
+
+model OrderItem {
+  id               Int           @id @default(autoincrement())
+  order            Order         @relation(fields: [orderId], references: [id])
+  orderId          Int           
+  productId        Int
+  productType      String        @db.VarChar(255)
+
+  @@unique([orderId, productId, productType])
+}
+
+model Currency {
+  shortName           String    @id @map(name: "short_name")
+  fullName            String    @map(name: "full_name")
+  Book                Book[]
+}
+
+model Book {
+  id                Int       @id @default(autoincrement())
+  title             String    @db.VarChar(255)
+  language          String?    @db.VarChar(255)
+  amount            Float?
+  currencyId        String?
+  currency          Currency? @relation(fields: [currencyId], references: [shortName])
+  year              DateTime?
+  description       String?
+  author            Author[]
+  category          Category[]
+  rating            Rating[]
+
+}
+
+model Author {
+  id                Int     @id @default(autoincrement())
+  name              String  @db.VarChar(255)
+  birth             DateTime? 
+  death             DateTime?
+  books             Book[]
+}
+
+model Category {
+  id                Int     @id @default(autoincrement())
+  name              String  @db.VarChar(255)
+  books             Book[]
+}
+
+model Rating {
+  book                Book  @relation(fields: [bookId], references: [id])
+  bookId              Int   @map(name: "book_id")
+  user                User  @relation(fields: [userId], references: [id])
+  userId              Int   @map(name: "user_id")
+  ratingValue         Int   @map(name: "rating_value")
+  @@id([bookId, userId])
+}
+

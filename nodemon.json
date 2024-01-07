@@ -1,0 +1,4 @@
+{
+    "ext": "ts, json, css",
+    "exec": "ts-node ./index.ts"
+}
